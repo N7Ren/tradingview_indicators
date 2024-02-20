@@ -1,0 +1,1 @@
+adapted pinescripts from tradingview
