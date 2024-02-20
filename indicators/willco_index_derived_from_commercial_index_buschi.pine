@@ -1,0 +1,52 @@
+//@version=5
+indicator(title="WillCoIndex derived from Commercial Index-Buschi", shorttitle="WillCoIndex derived from Commercial Index-Buschi", precision=0, overlay=false)
+
+import TradingView/LibraryCOT/2 as cot
+
+interval1 = input.int(26, title="time interval 1 (trading Weeks)", minval=1)
+//interval2 = input.int(156, title="time interval 2 (trading Weeks)", minval=1)
+//interval3 = input.int(260, title="time interval 3 (tradingy Weeks)", minval=1)
+
+cot_open_interest = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Open Interest", metricDirection = "No direction", metricType = "All")
+cot_comm_long = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Commercial Positions", metricDirection = "Long", metricType = "All")
+cot_comm_short = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Commercial Positions", metricDirection = "Short", metricType = "All")
+cot_lspecs_long = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Noncommercial Positions", metricDirection = "Long", metricType = "All")
+cot_lspecs_short = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Noncommercial Positions", metricDirection = "Short", metricType = "All")
+cot_sspecs_long = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Nonreportable Positions", metricDirection = "Long", metricType = "All")
+cot_sspecs_short = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Nonreportable Positions", metricDirection = "Short", metricType = "All")
+
+oi = request.security(cot_open_interest, "1D", close, ignore_invalid_symbol = true)
+
+comm_long = request.security(cot_comm_long, "1D", close, ignore_invalid_symbol = true)
+comm_short = request.security(cot_comm_short, "1D", close, ignore_invalid_symbol = true)
+lspecs_long = request.security(cot_lspecs_long, "1D", close, ignore_invalid_symbol = true)
+lspecs_short = request.security(cot_lspecs_short, "1D", close, ignore_invalid_symbol = true)
+sspecs_long = request.security(cot_sspecs_long, "1D", close, ignore_invalid_symbol = true)
+sspecs_short = request.security(cot_sspecs_short, "1D", close, ignore_invalid_symbol = true)
+
+comm_net = comm_long - comm_short
+lspecs_net = lspecs_long - lspecs_short
+sspecs_net = sspecs_long - sspecs_short
+
+q_comm = comm_net / oi
+q_lspecs = lspecs_net / oi
+q_sspecs = sspecs_net / oi
+
+q_comm_max = ta.highest(q_comm, interval1)
+q_lspec_max = ta.highest(q_lspecs, interval1)
+q_sspec_max = ta.highest(q_sspecs, interval1)
+q_comm_min = ta.lowest(q_comm, interval1)
+q_lspec_min = ta.lowest(q_lspecs, interval1)
+q_sspec_min = ta.lowest(q_sspecs, interval1)
+
+comm_index = 100 * (q_comm - q_comm_min) / (q_comm_max - q_comm_min)
+lspec_index = 100 * (q_lspecs - q_lspec_min) / (q_lspec_max - q_lspec_min)
+sspec_index = 100 * (q_sspecs - q_sspec_min) / (q_sspec_max - q_sspec_min)
+
+plot(comm_index, title="Commercial Index", color = color.red, style=plot.style_line, linewidth=1)
+plot(lspec_index, title="Large Specs Index", color = color.blue, style=plot.style_line, linewidth=1)
+plot(sspec_index, title="Small Speculators Index", color = color.yellow, style=plot.style_line, linewidth=1)
+
+hline(0, color=color.gray, title = "0", linestyle=hline.style_dashed,linewidth=1)
+hline(50, color=color.gray, title = "0", linestyle=hline.style_dashed,linewidth=1)
+hline(100, color=color.gray, title = "100", linestyle=hline.style_dashed,linewidth=1)

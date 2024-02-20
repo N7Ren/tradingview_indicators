@@ -1,0 +1,150 @@
+study("William's Commercial Index", shorttitle="Will's Comm Idx [0,5y, 3y]", precision=2)
+
+root = syminfo.root
+
+Symbol =
+//grains
+      root == "ZW" ? "W" :
+      root == "ZC" ? "C" :
+      root == "ZS" ? "S" :
+      root == "ZM" ? "SM" :
+      root == "ZL" ? "BO" :
+      root == "O" or root == "ZO" ? "004603" :  
+      root == "ZR" ? "039601" :
+      
+// energies
+     
+     // crude oil
+     root == "CL" or root == "QM" ? "067651" :
+     // gasoline
+     root == "RB" ? "111659" : 
+     // heating oil
+     root == "HO" or root == "QO" ? "022651" : 
+     // natural gas
+     root == "NG" ? "023651" : 
+     
+//Metals
+     // gold
+     root == "GC" ? "088691" :
+     // silver
+     root == "SI" ? "084691" :
+     // copper
+     root == "HG" ? "085692" :      
+     // palladium
+     root == "PA" ? "075651" :      
+     // platinum
+     root == "PL" ? "076651" :      
+     
+//bonds      
+	 //10 Year T-Note
+	 root == "TY" or root == "ZN" ? "043602":
+	 //30 Year T-Note
+	 root == "US" or root == "ZB" ? "020601":
+	 //2 Year T-Note
+	 root == "TU" or root == "ZT" ? "042601":
+	 //5 Year T-Note
+	 root == "FV" or root == "ZF"? "044601":
+	 
+//Softs
+     // cocoa
+      root == "CC" ? "073732" :
+     // cotton
+      root == "CT" ? "033661" :
+     // coffee
+      root == "KC" ? "083731" :
+     // sugar
+      root == "SB" ? "080732" :
+     // orange juice
+      root == "JO" ? "040701" :
+     // lumber
+      root == "LB" or root == "LS" ? "058643" :	 
+	 
+//currencies
+	  root == "AUDUSD" or root == "6A"? "232741": 
+	  root == "GBPUSD" or root == "6B" ? "096742" : 
+	  root == "USDCAD" or root == "6C" ? "090741" :  
+	  root == "EURUSD" or root == "6E" ? "099741" : 
+	  root == "USDJPY" or root == "6J" ? "097741" : 
+	  root == "USDCHF" or root ==  "6S" ? "092741" : 
+	  root == "USDMXN" ? "095741" : 
+	  root == "NZDUSD" ? "112741" : 	  
+	  root == "USDRUB" ? "089741" :
+	  root == "USDOLLAR" or root == "DX" ? "098662" :
+	  root == "BTC" ? "133741":
+	  root == "BG" ? "1330E1":
+//livestock
+     // live cattle
+     root == "LC" or root == "LE" ? "057642" : 
+     // feeder cattle
+     root == "QFC" or root == "GF" ? "061641" :
+     // lean hogs
+     root == "LH" or root == "HE" ? "054642" :  
+//index
+	 //Nasdaq
+	 root == "NQ" ? "209742":
+	 //Nasdaq index consolidated
+	 root == "NDX" ? "20974P":
+	 //S&P500 E-mini
+	 root == "ES" ? "ES":
+	 //S&P500 Futures
+	 root == "SP" ? "138741":
+	 //S&P500 consolidated
+	 root == "SPX" ? "13874P":
+	 //Russel 2000 mini
+	 root == "RTY" ? "239742":
+	 //VIX
+	 root == "VIX" or root == "VX" ? "1170E1":
+	 //DowJones mini
+	 root == "YM" ? "124603": 
+	 
+	root
+
+code = Symbol + "_F_L_ALL"
+
+is_inversed = 
+	  ticker == "USDCAD" ? true : 
+	  ticker == "USDCHF" ? true : 
+	  ticker == "USDCZK" ? true : 
+	  ticker == "USDHUF" ? true : 
+	  ticker == "USDILS" ? true : 
+	  ticker == "USDJPY" ? true : 
+	  ticker == "USDMXN" ? true : 
+	  ticker == "USDNOK" ? true : 
+	  ticker == "USDPLN" ? true : 
+	  ticker == "USDRUB" ? true : 
+	  ticker == "USDSEK" ? true : 
+	  ticker == "USDZAR" ? true : 
+	  false
+
+long_total = security("QUANDL:CFTC/"+code+"|4", "W", close)
+short_total = security("QUANDL:CFTC/"+code+"|5", "W", close)
+oi = security("QUANDL:CFTC/"+code+"|0", "W", close)
+
+//long = is_inversed ? short_total : long_total
+//short = is_inversed ? long_total : short_total
+//net = long-short
+net = long_total - short_total
+q = net / oi
+
+//Index
+length = input(26, title="Period (weeks)")
+
+max = highest(q, length)
+min = lowest(q, length)
+index = 100 * (q - min) / (max - min)
+
+//Index_B
+//length_B = input(156, title="Period (weeks) B")
+
+//max_B = highest(willco, length_B)
+//min_B = lowest(willco, length_B)
+//index_B = 100 * (willco - min_B) / (max_B - min_B)
+
+index_adopted = security(root"QUANDL:CFTC/"+code+"|5", "W", index)
+//index_adopted_B = security("QUANDL:CFTC/"+code+"|5", "D", index_B)
+
+plot(index_adopted, color = yellow, title="Index", style=line)
+//plot(index_adopted_B, color = #FF69B4, title="Index_B", style=line)
+
+hline(80, color=gray, linestyle=dashed)
+hline(20, color=gray, linestyle=dashed)

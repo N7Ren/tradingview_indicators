@@ -1,0 +1,23 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © ss44
+
+//@version=4
+study("Monday Cloud fixed for daily", overlay = true)
+
+is_monday = dayofweek == dayofweek.sunday
+
+float monday_high = 0
+float monday_low = 0
+
+highh = security(syminfo.tickerid, 'D', high)
+loww = security(syminfo.tickerid, 'D', low)
+
+monday_high := is_monday ? highh : monday_high[1]    
+monday_low := is_monday ? loww : monday_low[1]
+
+p_high = plot(is_monday == false ? monday_high : na, transp = 1, style = plot.style_linebr)
+p_low = plot(is_monday == false? monday_low : na, transp = 1, style = plot.style_linebr)
+
+mid_point = plot(is_monday == false ? (monday_high + monday_low) / 2 : na, style = plot.style_linebr, title = "median")
+
+fill(p_high,p_low)

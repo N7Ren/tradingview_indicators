@@ -1,0 +1,26 @@
+//@version=4
+study(title="Average True Range", shorttitle="ATR", overlay=false)
+length = input(title="Length", defval=14, minval=1)
+smoothing = input(title="Smoothing", defval="RMA", options=["RMA", "SMA", "EMA", "WMA"])
+ma_function(source, length) =>
+	if smoothing == "RMA"
+		rma(source, length)
+	else
+		if smoothing == "SMA"
+			sma(source, length)
+		else
+			if smoothing == "EMA"
+				ema(source, length)
+			else
+				wma(source, length)
+				
+atr = ma_function(tr(true), length)
+atrstring = tostring(atr)
+//atrstringforex = tostring(atr*1.5)
+//atrstringcrypto = tostring(atr*2)
+//atrstringcrypto2 = tostring(atr*3)
+
+plot(atr, title = "ATR", color=#991515, transp=0)
+label.new(x=bar_index, y=0,
+      color=color.black, textcolor=color.white,
+      text=atrstring)// + " forex: " + atrstringforex + " crypto: " + atrstringcrypto + " crypto ts: " + atrstringcrypto2)
