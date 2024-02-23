@@ -3,7 +3,7 @@
 
 //@version=5
 indicator("[Adapted] Larry Williams Proxy Index (LWPI) [Loxx]", 
-     shorttitle="[RAdapted] LWPI [Loxx]", 
+     shorttitle="[Adapted] LWPI [Loxx]", 
      overlay = false, 
      timeframe="", 
      timeframe_gaps = true)
@@ -18,6 +18,13 @@ lwpi = 50 + (50 * ma / atr)
 
 plot(lwpi, color = color.purple, linewidth = 1)
 
-hline(0, color=color.gray, title = "0", linestyle=hline.style_dashed,linewidth=1)
-hline(50, color=color.gray, title = "50", linestyle=hline.style_dashed,linewidth=1)
-hline(100, color=color.gray, title = "100", linestyle=hline.style_dashed,linewidth=1)
+hline(50, color=color.gray, title = "50", linestyle=hline.style_dashed,linewidth=1, editable=false)
+
+upperbound = input.int(100, "Upper Bound", minval=0, maxval=100)
+lowerbound = input.int(0, "Lower Bound", minval=0, maxval=100)
+
+hline(upperbound, color=color.gray, title = "Lower Bound", linestyle=hline.style_dashed,linewidth=1, editable=false)
+hline(lowerbound, color=color.gray, title = "Upper Bound", linestyle=hline.style_dashed,linewidth=1, editable=false)
+
+bgcolor(lwpi >= upperbound ? color.rgb(0, 255, 0, 60) : na)
+bgcolor(lwpi <= lowerbound ? color.rgb(255, 0, 0, 60) : na)
