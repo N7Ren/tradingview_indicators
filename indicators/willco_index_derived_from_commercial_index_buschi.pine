@@ -4,6 +4,7 @@ indicator(title="WillCoIndex derived from Commercial Index-Buschi", shorttitle="
 import TradingView/LibraryCOT/2 as cot
 
 interval1 = input.int(26, title="time interval 1 (trading Weeks)", minval=1)
+shortest_interval = interval1 * 7
 //interval2 = input.int(156, title="time interval 2 (trading Weeks)", minval=1)
 //interval3 = input.int(260, title="time interval 3 (tradingy Weeks)", minval=1)
 
@@ -32,12 +33,12 @@ q_comm = comm_net / oi
 q_lspecs = lspecs_net / oi
 q_sspecs = sspecs_net / oi
 
-q_comm_max = ta.highest(q_comm, interval1)
-q_lspec_max = ta.highest(q_lspecs, interval1)
-q_sspec_max = ta.highest(q_sspecs, interval1)
-q_comm_min = ta.lowest(q_comm, interval1)
-q_lspec_min = ta.lowest(q_lspecs, interval1)
-q_sspec_min = ta.lowest(q_sspecs, interval1)
+q_comm_max = ta.highest(q_comm, shortest_interval)
+q_lspec_max = ta.highest(q_lspecs, shortest_interval)
+q_sspec_max = ta.highest(q_sspecs, shortest_interval)
+q_comm_min = ta.lowest(q_comm, shortest_interval)
+q_lspec_min = ta.lowest(q_lspecs, shortest_interval)
+q_sspec_min = ta.lowest(q_sspecs, shortest_interval)
 
 comm_index = 100 * (q_comm - q_comm_min) / (q_comm_max - q_comm_min)
 lspec_index = 100 * (q_lspecs - q_lspec_min) / (q_lspec_max - q_lspec_min)
@@ -47,6 +48,13 @@ plot(comm_index, title="Commercial Index", color = color.red, style=plot.style_l
 plot(lspec_index, title="Large Specs Index", color = color.blue, style=plot.style_line, linewidth=1)
 plot(sspec_index, title="Small Speculators Index", color = color.yellow, style=plot.style_line, linewidth=1)
 
-hline(0, color=color.gray, title = "0", linestyle=hline.style_dashed,linewidth=1)
-hline(50, color=color.gray, title = "0", linestyle=hline.style_dashed,linewidth=1)
-hline(100, color=color.gray, title = "100", linestyle=hline.style_dashed,linewidth=1)
+hline(50, color=color.gray, title = "50", linestyle=hline.style_dashed,linewidth=1, editable=false)
+
+upperbound = input.int(100, "Upper Bound", minval=0, maxval=100)
+lowerbound = input.int(0, "Lower Bound", minval=0, maxval=100)
+
+hline(upperbound, color=color.gray, title = "Lower Bound", linestyle=hline.style_dashed,linewidth=1, editable=false)
+hline(lowerbound, color=color.gray, title = "Upper Bound", linestyle=hline.style_dashed,linewidth=1, editable=false)
+
+bgcolor(comm_index >= upperbound and lspec_index <= lowerbound and sspec_index <= lowerbound ? color.rgb(0, 255, 0, 60) : na)
+bgcolor(comm_index <= lowerbound and lspec_index >= upperbound and sspec_index >= upperbound ? color.rgb(255, 0, 0, 60) : na)
