@@ -136,5 +136,5 @@ alertcondition(bearCond, title='Regular Bearish Divergence', message='Found a ne
 //bgcolor(rsi > 70 ? color.rgb(255, 0, 0, 60) : na)
 //bgcolor(rsi < 30 ? color.rgb(0, 255, 0, 60) : na)
 
-bgcolor(rsi[1] > 70 ? color.rgb(255, 0, 0, 60) : na)
-bgcolor(rsi[1] < 30 ? color.rgb(0, 255, 0, 60) : na)
+bgcolor(rsi[1] > 70 and rsi[0] < 70? color.rgb(255, 0, 0, 60) : na)
+bgcolor(rsi[1] < 30 and rsi[0] > 30 ? color.rgb(0, 255, 0, 60) : na)
