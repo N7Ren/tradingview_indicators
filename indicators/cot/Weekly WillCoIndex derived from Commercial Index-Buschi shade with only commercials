@@ -1,0 +1,90 @@
+//@version=5
+indicator(title="Weekly WillCoIndex derived from Commercial Index-Buschi shade with only commercials", shorttitle="Weekly WillCoIndex derived from Commercial Index-Buschi with only commercials", precision=0, overlay=false)
+
+import TradingView/LibraryCOT/2 as cot
+
+interval1 = input.int(26, title="time interval 1 (trading Weeks)", minval=1)
+shortest_interval = interval1
+//interval2 = input.int(156, title="time interval 2 (trading Weeks)", minval=1)
+//interval3 = input.int(260, title="time interval 3 (tradingy Weeks)", minval=1)
+
+cot_open_interest = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Open Interest", metricDirection = "No direction", metricType = "All")
+cot_comm_long = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Commercial Positions", metricDirection = "Long", metricType = "All")
+cot_comm_short = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Commercial Positions", metricDirection = "Short", metricType = "All")
+cot_lspecs_long = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Noncommercial Positions", metricDirection = "Long", metricType = "All")
+cot_lspecs_short = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Noncommercial Positions", metricDirection = "Short", metricType = "All")
+cot_sspecs_long = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Nonreportable Positions", metricDirection = "Long", metricType = "All")
+cot_sspecs_short = cot.COTTickerid(COTType = "Legacy", CFTCCode = cot.convertRootToCOTCode("Auto"), includeOptions = false, metricName = "Nonreportable Positions", metricDirection = "Short", metricType = "All")
+
+oi = request.security(cot_open_interest, "1D", close, ignore_invalid_symbol = true)
+
+comm_long = request.security(cot_comm_long, "1D", close, ignore_invalid_symbol = true)
+comm_short = request.security(cot_comm_short, "1D", close, ignore_invalid_symbol = true)
+lspecs_long = request.security(cot_lspecs_long, "1D", close, ignore_invalid_symbol = true)
+lspecs_short = request.security(cot_lspecs_short, "1D", close, ignore_invalid_symbol = true)
+sspecs_long = request.security(cot_sspecs_long, "1D", close, ignore_invalid_symbol = true)
+sspecs_short = request.security(cot_sspecs_short, "1D", close, ignore_invalid_symbol = true)
+
+comm_net = comm_long - comm_short
+lspecs_net = lspecs_long - lspecs_short
+sspecs_net = sspecs_long - sspecs_short
+
+specs_net = lspecs_net + sspecs_net
+
+q_comm = comm_net / oi
+q_lspecs = lspecs_net / oi
+q_sspecs = sspecs_net / oi
+
+q_specs = q_lspecs + q_sspecs
+
+q_comm_max = ta.highest(q_comm, shortest_interval)
+q_lspec_max = ta.highest(q_lspecs, shortest_interval)
+q_sspec_max = ta.highest(q_sspecs, shortest_interval)
+q_comm_min = ta.lowest(q_comm, shortest_interval)
+q_lspec_min = ta.lowest(q_lspecs, shortest_interval)
+q_sspec_min = ta.lowest(q_sspecs, shortest_interval)
+
+q_specs_max = ta.highest(q_specs, shortest_interval)
+q_specs_min = ta.lowest(q_specs, shortest_interval)
+
+comm_index = 100 * (q_comm - q_comm_min) / (q_comm_max - q_comm_min)
+lspec_index = 100 * (q_lspecs - q_lspec_min) / (q_lspec_max - q_lspec_min)
+sspec_index = 100 * (q_sspecs - q_sspec_min) / (q_sspec_max - q_sspec_min)
+
+specs_index = 100 * (q_specs - q_specs_min) / (q_specs_max - q_specs_min)
+
+plot(comm_index, title="Commercial Index", color = color.red, style=plot.style_line, linewidth=1)
+plot(lspec_index, title="Large Specs Index", color = color.blue, style=plot.style_line, linewidth=1)
+plot(sspec_index, title="Small Speculators Index", color = color.yellow, style=plot.style_line, linewidth=1)
+//plot(specs_index, title="Speculators Index", color = color.green, style=plot.style_line, linewidth=1)
+
+hline(50, color=color.gray, title = "50", linestyle=hline.style_dashed,linewidth=1, editable=false)
+
+upperbound1 = input.int(100, "Upper Bound - Trade Setup", minval=0, maxval=100)
+lowerbound1 = input.int(0, "Lower Bound - Trade Setup", minval=0, maxval=100)
+
+upperbound2 = input.int(100, "Upper Bound - Near Trade Setup", minval=0, maxval=100)
+lowerbound2 = input.int(0, "Lower Bound - Near Trade Setup", minval=0, maxval=100)
+
+hline(upperbound1, color=color.gray, title = "Lower Bound", linestyle=hline.style_dashed,linewidth=1, editable=false)
+hline(lowerbound1, color=color.gray, title = "Upper Bound", linestyle=hline.style_dashed,linewidth=1, editable=false)
+
+hline(upperbound2, color=color.gray, title = "Lower Bound", linestyle=hline.style_dashed,linewidth=1, editable=false)
+hline(lowerbound2, color=color.gray, title = "Upper Bound", linestyle=hline.style_dashed,linewidth=1, editable=false)
+
+//bgcolor(specs_index >= upperbound2 or specs_index <= lowerbound2 ? color.rgb(0, 255, 0, 50) : na)
+//bgcolor(specs_index >= upperbound1 or specs_index <= lowerbound1 ? color.rgb(0, 255, 0, 25) : na)
+//bgcolor(lspec_index >= upperbound or lspec_index <= lowerbound ? color.rgb(0, 0, 255, 25) : na)
+
+bgcolor(comm_index <= lowerbound2 and comm_index > lowerbound1 ? color.rgb(255, 0, 0, 75) : na)
+bgcolor(comm_index <= lowerbound1 ? color.rgb(255, 0, 0, 25) : na)
+
+bgcolor(comm_index >= upperbound2 and comm_index < upperbound1 ? color.rgb(0, 255, 0, 75) : na)
+bgcolor(comm_index >= upperbound1 ? color.rgb(0, 255, 0, 25) : na)
+
+//bgcolor(comm_index >= upperbound and lspec_index <= lowerbound ? color.rgb(0, 255, 0, 50) : na)
+//bgcolor(comm_index <= lowerbound and lspec_index >= upperbound ? color.rgb(255, 0, 0, 50) : na)
+
+//bgcolor(comm_index >= upperbound and lspec_index <= lowerbound and sspec_index <= lowerbound ? color.rgb(0, 255, 0, 0) : na)
+//bgcolor(comm_index <= lowerbound and lspec_index >= upperbound and sspec_index >= upperbound ? color.rgb(255, 0, 0, 0) : na)
+

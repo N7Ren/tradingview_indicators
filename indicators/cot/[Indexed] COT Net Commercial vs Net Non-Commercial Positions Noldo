@@ -1,0 +1,185 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Noldo
+
+//@version=4
+
+study("COT Net Commercial vs Net Non-Commercial Positions")
+src = close
+
+bFX = false 
+
+//Can't set bFX as an input because plot and legend titles require literals
+
+// INPUTS
+
+sCalc  = "MARKETS"
+
+
+// ***** MARKET TYPES *****
+
+// Financial Markets (Commercial)
+
+bTotal = (sCalc == "MARKETS")
+sHead = "QUANDL:CFTC/"
+
+sLong = "_F_L_ALL|4"
+sShort = "_F_L_ALL|5"
+iWidth = 2
+
+
+// Non-Commercials (Speculators)
+
+bTotal2 = (sCalc == "NON-COMS")
+sHead2  = "QUANDL:CFTC/"
+
+sLong2  = "_F_L_ALL|1"
+sShort2 = "_F_L_ALL|2"
+iWidth2 = 2
+
+sOi = "_F_L_ALL|0"
+
+//***** CFTC MARKET CODES *****
+
+// 1 - Futures
+
+sCode1 =
+
+         syminfo.root == "ZB" ? "020601" :  
+         syminfo.root == "ZN" ? "043602" :
+         syminfo.root == "ZQ" ? "045601" :
+         syminfo.root == "ZT" ? "042601" :
+         syminfo.root == "ZS" ? "005602" :
+         syminfo.root == "DC" ? "052641" :
+         syminfo.root == "GF" ? "061641" :
+         syminfo.root == "LBS" ? "058643" :
+         syminfo.root == "QG" ? "023655" :
+         syminfo.root == "QM" ? "067655" :
+         syminfo.root == "SOYBNUSD" ? "005602" :
+	     syminfo.root == "ZM" ? "026603" :  
+	     syminfo.root == "ZL" ? "007601" :  
+	     syminfo.root == "ZC" ? "002602" :  
+	     syminfo.root == "CORNUSD" ? "002602" :
+	     syminfo.root == "ZW" ? "001602" :  
+	     syminfo.root == "WHEATUSD" ? "001602" :
+	     syminfo.root == "KE" ? "001612" :  
+	     syminfo.root == "HE" ? "054642" :  
+	     syminfo.root == "LE" ? "057642" :  
+	     syminfo.root == "GC" ? "088691" :  
+	     syminfo.root == "XAUUSD" ? "088691" :
+	     syminfo.root == "SI" ? "084691" : 
+	     syminfo.root == "XAGUSD" ? "084691" :
+	     syminfo.root == "HG" ? "085692" :
+	     syminfo.root == "XCUUSD" ? "085692" :
+	     syminfo.root == "CL" ? "067651" :  
+	     syminfo.root == "WTICOUSD" ? "067651" : 
+	     syminfo.root == "BCOUSD" ? "06765T" :
+	     syminfo.root == "HO" ? "022651" :  
+	     syminfo.root == "RB" ? "111659" :  
+	     syminfo.root == "NG" ? "023651" :  
+	     syminfo.root == "NATGASUSD" ? "023651" :
+	     syminfo.root == "A6" ? "232741" :  
+	     syminfo.root == "6A" ? "232741" :
+	     syminfo.root == "AUDUSD" ? "232741" :
+	     syminfo.root == "B6" ? "096742" : 
+	     syminfo.root == "6B" ? "096742" : 
+	     syminfo.root == "6C" ? "090741" :
+	     syminfo.root == "CADUSD" ? "090741" :
+	     syminfo.root == "USDCAD" ? "090741" :
+	     syminfo.root == "GBPUSD" ? "096742" :
+	     syminfo.root == "D6" ? "090741" :  
+	     syminfo.root == "CADUSD" ? "090741" :
+	     syminfo.root == "6Z" ? "122741" :
+	     syminfo.root == "ZARUSD" ? "122741" :
+	     syminfo.root == "E6" ? "099741" :
+	     syminfo.root == "6E" ? "099741" :
+	     syminfo.root == "EURUSD" ? "099741" :
+	     syminfo.root == "J6" ? "097741" :  
+	     syminfo.root == "6J" ? "097741" : 
+	     syminfo.root == "JPYUSD" ? "097741" :
+	     syminfo.root == "S6" ? "092741" : 
+	     syminfo.root == "6S" ? "092741" : 
+	     syminfo.root == "CHFUSD" ? "092741" :
+	     syminfo.root == "SB" ? "080732" :  
+	     syminfo.root == "SUGARUSD" ? "080732" :
+	     syminfo.root == "KC" ? "083731" :  
+	     syminfo.root == "CC" ? "073732" :  
+	     syminfo.root == "6N" ? "112741" : 
+	     syminfo.root == "6S" ? "092741" : 
+	     syminfo.root == "CT" ? "033661" :  
+	     syminfo.root == "ES" ? "13874A" :  
+	     syminfo.root == "SPX500USD" ? "13874A" :
+	     syminfo.root == "SP" ? "13874A" :
+	     syminfo.root == "RTY" ? "239742" : 
+	     syminfo.root == "YM" ? "12460P" :  
+	     syminfo.root == "NQ" ? "209742" : 
+	     syminfo.root == "NAS100USD" ? "209742" :
+	     syminfo.root == "PA" ? "075651" : 
+	     syminfo.root == "XPDUSD" ? "075651" :
+	     syminfo.root == "PL" ? "076651" : 
+	     syminfo.root == "XPTUSD" ? "076651" : 
+	     syminfo.root == "VX" ? "1170E1" :
+	     syminfo.root == "M6" ? "095741" :
+	     syminfo.root == "6M" ? "095741" :
+	     syminfo.root == "USDMXN" ? "095741" :
+	     syminfo.root == "MXNUSD" ? "095741" :
+	     syminfo.root == "BTCUSD" ? "133741" :
+	     syminfo.root == "BTCUSDT" ? "133741" :
+	     syminfo.root == "BTCUSDC" ? "133741" :
+	     syminfo.root == "XBTUSD" ? "133741" :
+         ""
+
+
+//Titles
+
+sTitle1 =  "MARKETS" 
+
+length = input(26, title="Period (weeks)")
+
+// COT CFTC Auto Generation Codes 
+
+dOi(asCode) => security(sHead + asCode + (sOi), "W", close[1], lookahead=barmerge.lookahead_on)
+
+//Data functions
+dLong(asCode) =>  security(sHead + asCode + (sLong), "W", close[1], lookahead=barmerge.lookahead_on)
+dShort(asCode) => security(sHead + asCode + (sShort), "W", close[1], lookahead=barmerge.lookahead_on)
+
+
+oi = dOi(sCode1)
+
+// COMMERCIALS
+
+_pos_coms_short = dShort(sCode1)
+_pos_coms_long  = dLong (sCode1)
+
+
+net_com = _pos_coms_long - _pos_coms_short
+q_com = net_com / oi
+
+max_comm = highest(q_com, length)
+min_comm = lowest(q_com, length)
+comm_index = 100 * (q_com - min_comm) / (max_comm - min_comm)
+
+// NON - COMMERCIALS 
+
+sTitle2 =  "NON-COMS"
+
+
+dLong2(asCode2) =>  security(sHead2 + asCode2 + (sLong2), "W", close[1], lookahead=barmerge.lookahead_on)
+dShort2(asCode2) => security(sHead2 +asCode2 + (sShort2), "W", close[1], lookahead=barmerge.lookahead_on)
+
+_pos_noncoms_long    =  dLong2(sCode1)
+_pos_noncoms_short   =  dShort2(sCode1)
+
+net_noncom = _pos_noncoms_long - _pos_noncoms_short
+q_noncom = net_noncom / oi
+
+max_noncomm = highest(q_noncom, length)
+min_noncomm = lowest(q_noncom, length)
+noncomm_index = 100 * (q_noncom - min_noncomm) / (max_noncomm - min_noncomm)
+
+// Plot data 
+
+plot(comm_index, color = color.red  , transp = 0  , linewidth = 2)
+plot(noncomm_index, color = color.blue  , transp = 0  , linewidth = 2)
+hline(95.00)
+hline(5.00)
